@@ -1,8 +1,6 @@
-from PySide6.QtWidgets import (
-    QMainWindow,
-    QVBoxLayout,
-    QWidget,
-)
+from PySide6.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QLabel
+from PySide6.QtCore import Qt
+from variables import SMALL_FONT_SIZE
 
 
 class MainWindow(QMainWindow):
@@ -23,5 +21,16 @@ class MainWindow(QMainWindow):
         self.adjustSize()
         self.setFixedSize(self.width(), self.height())
 
-    def addWidgetToVLayout(self, widget: QWidget):
+    def addToVLayout(self, widget: QWidget):
         self.vLayout.addWidget(widget)
+
+
+# Classe Info para mostrar informações
+class Info(QLabel):
+    def __init__(self, text: str, parent: QWidget | None = None) -> None:
+        super().__init__(text, parent)
+        self.configStyle()
+
+    def configStyle(self):
+        self.setStyleSheet(f"font-size: {SMALL_FONT_SIZE}px;")
+        self.setAlignment(Qt.AlignmentFlag.AlignRight)
