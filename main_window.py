@@ -1,6 +1,15 @@
-from PySide6.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QLabel
+from PySide6.QtWidgets import (
+    QMainWindow,
+    QVBoxLayout,
+    QWidget,
+    QLabel,
+    QPushButton,
+)
 from PySide6.QtCore import Qt
-from variables import SMALL_FONT_SIZE
+from variables import SMALL_FONT_SIZE, MEDIUM_FONT_SIZE
+
+
+# Principais componentes da janela principal do programa
 
 
 class MainWindow(QMainWindow):
@@ -34,3 +43,17 @@ class Info(QLabel):
     def configStyle(self):
         self.setStyleSheet(f"font-size: {SMALL_FONT_SIZE}px;")
         self.setAlignment(Qt.AlignmentFlag.AlignRight)
+
+
+# Classe para definir botoes
+class Button(QPushButton):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.configStyle()
+
+    def configStyle(self):
+        font = self.font()
+        font.setPixelSize(MEDIUM_FONT_SIZE)
+        self.setFont(font)
+        self.setMinimumSize(75, 75)
+        self.setProperty("cssClass", "specialButton")

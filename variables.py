@@ -1,5 +1,7 @@
 from pathlib import Path
 
+# Modulo referente a variaveis que podem ser utilizadas em outros modulos
+
 # Paths
 ROOT_DIR = Path(__file__).parent
 FILES_DIR = ROOT_DIR / "files"

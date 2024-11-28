@@ -3,6 +3,9 @@ from PySide6.QtWidgets import QLineEdit
 from variables import MINIMUM_WIDTH, BIG_FONT_SIZE, TEXT_MARGIN
 
 
+# Visualização da entrada de dados
+
+
 class Display(QLineEdit):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
