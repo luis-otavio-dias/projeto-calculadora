@@ -4,6 +4,7 @@ from PySide6.QtWidgets import (
     QWidget,
     QLabel,
     QPushButton,
+    QGridLayout,
 )
 from PySide6.QtCore import Qt
 from variables import SMALL_FONT_SIZE, MEDIUM_FONT_SIZE
@@ -30,7 +31,7 @@ class MainWindow(QMainWindow):
         self.adjustSize()
         self.setFixedSize(self.width(), self.height())
 
-    def addToVLayout(self, widget: QWidget):
+    def addWidgetToVLayout(self, widget: QWidget):
         self.vLayout.addWidget(widget)
 
 
@@ -45,7 +46,7 @@ class Info(QLabel):
         self.setAlignment(Qt.AlignmentFlag.AlignRight)
 
 
-# Classe para definir botoes
+# Botoes
 class Button(QPushButton):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -57,3 +58,16 @@ class Button(QPushButton):
         self.setFont(font)
         self.setMinimumSize(75, 75)
         self.setProperty("cssClass", "specialButton")
+
+
+class ButtonsGrid(QGridLayout):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self._gridMask = [
+            ["C", "◀", "^", "/"],
+            ["7", "8", "9", "*"],
+            ["4", "5", "6", "-"],
+            ["1", "2", "3", "+"],
+            ["", "0", ".", "="],
+        ]
