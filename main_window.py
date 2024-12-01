@@ -8,6 +8,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt
 from variables import SMALL_FONT_SIZE, MEDIUM_FONT_SIZE
+from utils import isEmpty, isNumOrDot
 
 
 # Principais componentes da janela principal do programa
@@ -57,7 +58,6 @@ class Button(QPushButton):
         font.setPixelSize(MEDIUM_FONT_SIZE)
         self.setFont(font)
         self.setMinimumSize(75, 75)
-        self.setProperty("cssClass", "specialButton")
 
 
 class ButtonsGrid(QGridLayout):
@@ -71,3 +71,17 @@ class ButtonsGrid(QGridLayout):
             ["1", "2", "3", "+"],
             ["", "0", ".", "="],
         ]
+
+        self._makeGrid()
+
+    def _makeGrid(self):
+        # indexes, i e j
+        # i row index; j column index
+        for i, row in enumerate(self._gridMask):
+            for j, buttonText in enumerate(row):
+                button = Button(buttonText)
+
+                if not isNumOrDot(buttonText) and not isEmpty(buttonText):
+                    button.setProperty("cssClass", "specialButton")
+
+                self.addWidget(button, i, j)
