@@ -2,9 +2,8 @@ import sys
 
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication
-from main_window import MainWindow, Info, ButtonsGrid
+from main_window import MainWindow, Info, ButtonsGrid, Display
 from variables import WINDOW_ICON_PATH
-from display import Display
 from styles import setupTheme
 
 if __name__ == "__main__":
@@ -27,7 +26,7 @@ if __name__ == "__main__":
     window.addWidgetToVLayout(display)
 
     # Grid
-    buttonsGrid = ButtonsGrid()
+    buttonsGrid = ButtonsGrid(display)
     window.vLayout.addLayout(buttonsGrid)
 
     # Executa a aplicação

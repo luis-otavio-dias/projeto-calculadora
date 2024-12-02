@@ -5,15 +5,35 @@ from PySide6.QtWidgets import (
     QLabel,
     QPushButton,
     QGridLayout,
+    QLineEdit,
 )
-from PySide6.QtCore import Qt
-from variables import SMALL_FONT_SIZE, MEDIUM_FONT_SIZE
+from PySide6.QtCore import Qt, Slot
+from variables import (
+    SMALL_FONT_SIZE,
+    MEDIUM_FONT_SIZE,
+    MINIMUM_WIDTH,
+    BIG_FONT_SIZE,
+    TEXT_MARGIN,
+)
 from utils import isEmpty, isNumOrDot
 
 
+# Visualização da entrada de dados
+class Display(QLineEdit):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.configStyle()
+
+    def configStyle(self):
+        margins = [TEXT_MARGIN for any in range(4)]
+        self.setStyleSheet(f"font-size: {BIG_FONT_SIZE}px")
+        self.setMinimumHeight(BIG_FONT_SIZE * 2)
+        self.setMinimumWidth(MINIMUM_WIDTH)
+        self.setAlignment(Qt.AlignmentFlag.AlignRight)
+        self.setTextMargins(*margins)
+
+
 # Principais componentes da janela principal do programa
-
-
 class MainWindow(QMainWindow):
     def __init__(self, parent: QWidget | None = None, *args, **kwargs) -> None:
         super().__init__(parent, *args, **kwargs)
@@ -61,7 +81,7 @@ class Button(QPushButton):
 
 
 class ButtonsGrid(QGridLayout):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, display: Display, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self._gridMask = [
@@ -72,6 +92,7 @@ class ButtonsGrid(QGridLayout):
             ["", "0", ".", "="],
         ]
 
+        self.display = display
         self._makeGrid()
 
     def _makeGrid(self):
@@ -85,3 +106,19 @@ class ButtonsGrid(QGridLayout):
                     button.setProperty("cssClass", "specialButton")
 
                 self.addWidget(button, i, j)
+                buttonSlot = self._makeButtonDisplaySlot(
+                    self._insertTextToDisplay,
+                    button,
+                )
+                button.clicked.connect(buttonSlot)
+
+    def _makeButtonDisplaySlot(self, func, *args, **kwargs):
+        @Slot(bool)
+        def realSLot(_):
+            func(*args, **kwargs)
+
+        return realSLot
+
+    def _insertTextToDisplay(self, button):
+        buttonText = button.text()
+        self.display.insert(buttonText)
