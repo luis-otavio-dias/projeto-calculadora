@@ -81,7 +81,7 @@ class Button(QPushButton):
 
 
 class ButtonsGrid(QGridLayout):
-    def __init__(self, display: Display, info: Info, *args, **kwargs):
+    def __init__(self, display: Display, info: Info, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
         self._gridMask = [
@@ -95,6 +95,8 @@ class ButtonsGrid(QGridLayout):
         self.display = display
         self.info = info
         self._equation = ""
+
+        self.equation = "Anything"
         self._makeGrid()
 
     @property
@@ -115,15 +117,23 @@ class ButtonsGrid(QGridLayout):
 
                 if not isNumOrDot(buttonText) and not isEmpty(buttonText):
                     button.setProperty("cssClass", "specialButton")
+                    self._configSpecialButton(button)
 
                 self.addWidget(button, i, j)
-                buttonSlot = self._makeButtonDisplaySlot(
-                    self._insertTextToDisplay,
-                    button,
-                )
-                button.clicked.connect(buttonSlot)
+                slot = self._makeSlot(self._insertTextToDisplay, button)
+                self._connectButtonClick(button, slot)
 
-    def _makeButtonDisplaySlot(self, func, *args, **kwargs):
+    def _connectButtonClick(self, button, slot):
+        button.clicked.connect(slot)
+
+    def _configSpecialButton(self, button):
+        text = button.text()
+
+        if text == "C":
+            slot = self._makeSlot(self.display.clear)
+            self._connectButtonClick(button, slot)
+
+    def _makeSlot(self, func, *args, **kwargs):
         @Slot(bool)
         def realSLot(_):
             func(*args, **kwargs)
