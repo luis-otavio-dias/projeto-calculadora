@@ -15,7 +15,7 @@ from variables import (
     BIG_FONT_SIZE,
     TEXT_MARGIN,
 )
-from utils import isEmpty, isNumOrDot
+from utils import isEmpty, isNumOrDot, isValidNumber
 
 
 # Visualização da entrada de dados
@@ -81,7 +81,7 @@ class Button(QPushButton):
 
 
 class ButtonsGrid(QGridLayout):
-    def __init__(self, display: Display, *args, **kwargs):
+    def __init__(self, display: Display, info: Info, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self._gridMask = [
@@ -93,7 +93,18 @@ class ButtonsGrid(QGridLayout):
         ]
 
         self.display = display
+        self.info = info
+        self._equation = ""
         self._makeGrid()
+
+    @property
+    def equation(self):
+        return self._equation
+
+    @equation.setter
+    def equation(self, value):
+        self._equation = value
+        self.info.setText(value)
 
     def _makeGrid(self):
         # indexes, i e j
@@ -121,4 +132,9 @@ class ButtonsGrid(QGridLayout):
 
     def _insertTextToDisplay(self, button):
         buttonText = button.text()
+        newDisplayValue = self.display.text() + buttonText
+
+        if not isValidNumber(newDisplayValue):
+            return
+
         self.display.insert(buttonText)
