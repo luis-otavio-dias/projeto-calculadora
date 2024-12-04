@@ -18,7 +18,7 @@ if __name__ == "__main__":
     app.setWindowIcon(icon)
 
     # Info
-    info = Info("x ^ n")
+    info = Info("0")
     window.addWidgetToVLayout(info)
 
     # Definindo display

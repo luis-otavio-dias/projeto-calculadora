@@ -73,6 +73,7 @@ class Button(QPushButton):
         super().__init__(*args, **kwargs)
         self.configStyle()
 
+    # Estilo dos botoes
     def configStyle(self):
         font = self.font()
         font.setPixelSize(MEDIUM_FONT_SIZE)
@@ -80,6 +81,7 @@ class Button(QPushButton):
         self.setMinimumSize(75, 75)
 
 
+# Funcionalidade dos botoes
 class ButtonsGrid(QGridLayout):
     def __init__(self, display: Display, info: Info, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -95,10 +97,16 @@ class ButtonsGrid(QGridLayout):
         self.display = display
         self.info = info
         self._equation = ""
+        self._equationInitialValue = "0"
+        self._left = None
+        self._right = None
+        self._op = None
 
-        self.equation = "Anything"
+        self.equation = self._equationInitialValue
         self._makeGrid()
 
+    # Getter e setter
+    # Altera a Info() acima do display
     @property
     def equation(self):
         return self._equation
@@ -108,6 +116,7 @@ class ButtonsGrid(QGridLayout):
         self._equation = value
         self.info.setText(value)
 
+    # Grid de botoes
     def _makeGrid(self):
         # indexes, i e j
         # i row index; j column index
@@ -115,6 +124,7 @@ class ButtonsGrid(QGridLayout):
             for j, buttonText in enumerate(row):
                 button = Button(buttonText)
 
+                # Estilo dos botoes especiais
                 if not isNumOrDot(buttonText) and not isEmpty(buttonText):
                     button.setProperty("cssClass", "specialButton")
                     self._configSpecialButton(button)
@@ -123,15 +133,26 @@ class ButtonsGrid(QGridLayout):
                 slot = self._makeSlot(self._insertTextToDisplay, button)
                 self._connectButtonClick(button, slot)
 
+    # Acao ao clicar no botao
     def _connectButtonClick(self, button, slot):
         button.clicked.connect(slot)
 
     def _configSpecialButton(self, button):
         text = button.text()
 
+        # limpa o display
         if text == "C":
-            slot = self._makeSlot(self.display.clear)
-            self._connectButtonClick(button, slot)
+            self._connectButtonClick(button, self._clear)
+
+        # operadores
+        if text in "+-/*":
+            self._connectButtonClick(
+                button, self._makeSlot(self._operatorClicked, button)
+            )
+
+        # igual
+        if text in "=":
+            self._connectButtonClick(button, self._equal)
 
     def _makeSlot(self, func, *args, **kwargs):
         @Slot(bool)
@@ -148,3 +169,59 @@ class ButtonsGrid(QGridLayout):
             return
 
         self.display.insert(buttonText)
+
+    # reseta display e info
+    def _clear(self):
+        self._left = None
+        self._right = None
+        self._op = None
+        self.equation = self._equationInitialValue
+        self.display.clear()
+
+    def _operatorClicked(self, button):
+        buttonText = button.text()
+        displayText = self.display.text()
+        self.display.clear()
+
+        if not isValidNumber(displayText) and self._left is None:
+            print("Nothing to put on the left value")
+            return
+
+        if self._left is None:
+            self._left = float(displayText)
+
+        self._op = buttonText
+        self.equation = f"{self._left} {self._op} "
+
+    def _equal(self):
+        displayText = self.display.text()
+
+        if not isValidNumber(displayText):
+            print("Nothing at right")
+            return
+
+        self._right = float(displayText)
+        self.equation = f"{self._left} {self._op} {self._right}"
+        result = 0.0
+
+        # No curso as operacoes sao feitas utilizando 'eval'
+        # por motivos de segurança utilizei outro metodo
+        match self._op:
+            case "+":
+                result = self._sum(self._left, self._right)
+                self.display.clear()
+                self.display.insert(result)
+                self._left = float(self.display.text())
+                self._right = None
+
+    def _sum(self, leftNum, rightNum) -> str:
+        result = leftNum + rightNum
+        return str(result)
+
+    def _less(self, *args):
+        lessList = args
+        # dobra o valor para evitar que leftNum - num = 0
+        leftNum = lessList[0] * 2
+        for num in lessList:
+            leftNum -= num
+        return leftNum
