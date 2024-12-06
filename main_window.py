@@ -178,6 +178,7 @@ class ButtonsGrid(QGridLayout):
         self.equation = self._equationInitialValue
         self.display.clear()
 
+    # operador clicado
     def _operatorClicked(self, button):
         buttonText = button.text()
         displayText = self.display.text()
@@ -204,24 +205,58 @@ class ButtonsGrid(QGridLayout):
         self.equation = f"{self._left} {self._op} {self._right}"
         result = 0.0
 
-        # No curso as operacoes sao feitas utilizando 'eval'
-        # por motivos de segurança utilizei outro metodo
-        match self._op:
-            case "+":
-                result = self._sum(self._left, self._right)
-                self.display.clear()
-                self.display.insert(result)
-                self._left = float(self.display.text())
-                self._right = None
+        try:
+            result = eval(self.equation)
+        except ZeroDivisionError:
+            print("Zero Division Erros")
 
-    def _sum(self, leftNum, rightNum) -> str:
-        result = leftNum + rightNum
-        return str(result)
+        self.display.clear()
+        self.info.setText(f"{self.equation} = {result}")
+        self._left = result
+        self._right = None
 
-    def _less(self, *args):
-        lessList = args
-        # dobra o valor para evitar que leftNum - num = 0
-        leftNum = lessList[0] * 2
-        for num in lessList:
-            leftNum -= num
-        return leftNum
+    # Tentativa de evitar uso de 'eval()'
+    #     if self._op == "+":
+    #         result = self._sum(self._left, self._right)
+    #     if self._op == "-":
+    #         result = self._less(self._left, self._right)
+    #     if self._op == "*":
+    #         result = self._multiply(self._left, self._right)
+    #     if self._op == "/":
+    #         result = self._divide(self._left, self._right)
+
+    #     if not isValidNumber(result):
+    #         self._clear()
+    #         self.info.setText(f"{self._equationInitialValue}")
+
+    #     self.display.clear()
+    #     self.info.setText(f"{self.equation} = {result}")
+    #     self._left = result
+    #     self._right = None
+
+    # # soma
+    # def _sum(self, leftNum, rightNum) -> str:
+    #     n1, n2 = float(leftNum), float(rightNum)
+    #     result = n1 + n2
+    #     return str(result)
+
+    # # menos
+    # def _less(self, leftNum, rightNum):
+    #     n1, n2 = float(leftNum), float(rightNum)
+    #     result = n1 - n2
+    #     return str(result)
+
+    # def _multiply(self, leftNum, rightNum):
+    #     n1, n2 = float(leftNum), float(rightNum)
+    #     result = n1 * n2
+    #     return str(result)
+
+    # def _divide(self, leftNum, rightNum):
+    #     n1, n2 = float(leftNum), float(rightNum)
+
+    #     try:
+    #         result = n1 / n2
+    #     except ZeroDivisionError:
+    #         return "Cannot divide by 0"
+
+    #     return str(result)
