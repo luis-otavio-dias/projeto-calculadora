@@ -6,6 +6,7 @@ from PySide6.QtWidgets import (
     QPushButton,
     QGridLayout,
     QLineEdit,
+    QMessageBox,
 )
 from PySide6.QtCore import Qt, Slot
 from variables import (
@@ -16,6 +17,7 @@ from variables import (
     TEXT_MARGIN,
 )
 from utils import isEmpty, isNumOrDot, isValidNumber
+import math
 
 
 # Visualização da entrada de dados
@@ -55,6 +57,9 @@ class MainWindow(QMainWindow):
     def addWidgetToVLayout(self, widget: QWidget):
         self.vLayout.addWidget(widget)
 
+    def makeMsgBox(self):
+        return QMessageBox(self)
+
 
 # Classe Info para mostrar informações
 class Info(QLabel):
@@ -83,7 +88,9 @@ class Button(QPushButton):
 
 # Funcionalidade dos botoes
 class ButtonsGrid(QGridLayout):
-    def __init__(self, display: Display, info: Info, *args, **kwargs) -> None:
+    def __init__(
+        self, display: Display, info: Info, window: MainWindow, *args, **kwargs
+    ) -> None:
         super().__init__(*args, **kwargs)
 
         self._gridMask = [
@@ -96,6 +103,7 @@ class ButtonsGrid(QGridLayout):
 
         self.display = display
         self.info = info
+        self.window = window
         self._equation = ""
         self._equationInitialValue = "0"
         self._left = None
@@ -144,8 +152,12 @@ class ButtonsGrid(QGridLayout):
         if text == "C":
             self._connectButtonClick(button, self._clear)
 
+        # backspace
+        if text in "◀":
+            self._connectButtonClick(button, self.display.backspace)
+
         # operadores
-        if text in "+-/*":
+        if text in "+-/*^":
             self._connectButtonClick(
                 button, self._makeSlot(self._operatorClicked, button)
             )
@@ -185,7 +197,7 @@ class ButtonsGrid(QGridLayout):
         self.display.clear()
 
         if not isValidNumber(displayText) and self._left is None:
-            print("Nothing to put on the left value")
+            self._showError("Nada foi digitado")
             return
 
         if self._left is None:
@@ -198,22 +210,45 @@ class ButtonsGrid(QGridLayout):
         displayText = self.display.text()
 
         if not isValidNumber(displayText):
-            print("Nothing at right")
+            self._showInfo("Conta incompleta")
             return
 
         self._right = float(displayText)
         self.equation = f"{self._left} {self._op} {self._right}"
-        result = 0.0
+        result = "error"
 
         try:
-            result = eval(self.equation)
+            if "^" in self.equation and isinstance(self._left, float):
+                result = math.pow(self._left, self._right)
+            else:
+                result = eval(self.equation)
         except ZeroDivisionError:
-            print("Zero Division Erros")
+            self._showError("Impossível dividir por zero")
+        except OverflowError:
+            print("Resultado é um número muito grande")
 
         self.display.clear()
         self.info.setText(f"{self.equation} = {result}")
         self._left = result
         self._right = None
+
+        if result == "error":
+            self._left = None
+
+    def _makeDialog(self, text):
+        msgBox = self.window.makeMsgBox()
+        msgBox.setText(text)
+        return msgBox
+
+    def _showError(self, text):
+        msgBox = self._makeDialog(text)
+        msgBox.setIcon(msgBox.Icon.Critical)
+        msgBox.exec()
+
+    def _showInfo(self, text):
+        msgBox = self._makeDialog(text)
+        msgBox.setIcon(msgBox.Icon.Information)
+        msgBox.exec()
 
     # Tentativa de evitar uso de 'eval()'
     #     if self._op == "+":
