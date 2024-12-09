@@ -8,7 +8,8 @@ from PySide6.QtWidgets import (
     QLineEdit,
     QMessageBox,
 )
-from PySide6.QtCore import Qt, Slot
+from PySide6.QtCore import Qt, Slot, Signal
+from PySide6.QtGui import QKeyEvent
 from variables import (
     SMALL_FONT_SIZE,
     MEDIUM_FONT_SIZE,
@@ -22,6 +23,8 @@ import math
 
 # Visualização da entrada de dados
 class Display(QLineEdit):
+    eqRequested = Signal()
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.configStyle()
@@ -33,6 +36,17 @@ class Display(QLineEdit):
         self.setMinimumWidth(MINIMUM_WIDTH)
         self.setAlignment(Qt.AlignmentFlag.AlignRight)
         self.setTextMargins(*margins)
+
+    def keyPressEvent(self, event: QKeyEvent) -> None:
+        key = event.key()
+        KEYS = Qt.Key
+
+        isEnter = key in [KEYS.Key_Enter, KEYS.Key_Return]
+
+        if isEnter:
+            print(f"Enter pressionado, sinal enviado de {type(self).__name__}")
+            self.eqRequested.emit()
+            return event.ignore()
 
 
 # Principais componentes da janela principal do programa
@@ -124,8 +138,13 @@ class ButtonsGrid(QGridLayout):
         self._equation = value
         self.info.setText(value)
 
+    def apagando(self):
+        print(f"Sinal recebido em 'apagando' {type(self).__name__}")
+
     # Grid de botoes
     def _makeGrid(self):
+        self.display.eqRequested.connect(self.apagando)
+
         # indexes, i e j
         # i row index; j column index
         for i, row in enumerate(self._gridMask):
