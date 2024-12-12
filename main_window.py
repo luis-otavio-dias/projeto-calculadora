@@ -23,7 +23,9 @@ import math
 
 # Visualização da entrada de dados
 class Display(QLineEdit):
-    eqRequested = Signal()
+    eqPressed = Signal()
+    delPressed = Signal()
+    escPressed = Signal()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -38,15 +40,34 @@ class Display(QLineEdit):
         self.setTextMargins(*margins)
 
     def keyPressEvent(self, event: QKeyEvent) -> None:
+        text = event.text().strip()
         key = event.key()
         KEYS = Qt.Key
 
-        isEnter = key in [KEYS.Key_Enter, KEYS.Key_Return]
+        isEnter = key in [KEYS.Key_Enter, KEYS.Key_Return, KEYS.Key_Equal]
+        isBackspace = key in [KEYS.Key_Backspace, KEYS.Key_Delete]
+        isEsc = key in [KEYS.Key_Escape]
 
         if isEnter:
             print(f"Enter pressionado, sinal enviado de {type(self).__name__}")
-            self.eqRequested.emit()
+            self.eqPressed.emit()
             return event.ignore()
+
+        if isBackspace:
+            print(f"Backspace pressed, sinal enviado de {type(self).__name__}")
+            self.delPressed.emit()
+            return event.ignore()
+
+        if isEsc:
+            print(f"Esc pressionado, sinal enviado de {type(self).__name__}")
+            self.escPressed.emit()
+            return event.ignore()
+
+        # Não passar daqui
+        if isEmpty(text):
+            return event.ignore()
+
+        print("Text: ", text)
 
 
 # Principais componentes da janela principal do programa
@@ -143,7 +164,9 @@ class ButtonsGrid(QGridLayout):
 
     # Grid de botoes
     def _makeGrid(self):
-        self.display.eqRequested.connect(self.apagando)
+        self.display.eqPressed.connect(self.apagando)
+        self.display.delPressed.connect(self.display.backspace)
+        self.display.escPressed.connect(self.apagando)
 
         # indexes, i e j
         # i row index; j column index

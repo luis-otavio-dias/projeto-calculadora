@@ -15,7 +15,7 @@
     },
     "black-formatter.args": [
         "--line-length",
-        "79"
+        "80"
     ],
     "explorer.compactFolders": false,
     "code-runner.runInTerminal": true,
