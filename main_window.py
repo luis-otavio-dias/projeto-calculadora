@@ -26,6 +26,7 @@ class Display(QLineEdit):
     eqPressed = Signal()
     delPressed = Signal()
     escPressed = Signal()
+    imputPressed = Signal(str)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -49,17 +50,17 @@ class Display(QLineEdit):
         isEsc = key in [KEYS.Key_Escape]
 
         if isEnter:
-            print(f"Enter pressionado, sinal enviado de {type(self).__name__}")
+            print(f"Enter pressed, signal sent by {type(self).__name__}")
             self.eqPressed.emit()
             return event.ignore()
 
         if isBackspace:
-            print(f"Backspace pressed, sinal enviado de {type(self).__name__}")
+            print(f"Backspace pressed, signal sent by {type(self).__name__}")
             self.delPressed.emit()
             return event.ignore()
 
         if isEsc:
-            print(f"Esc pressionado, sinal enviado de {type(self).__name__}")
+            print(f"Esc pressed, signal sent by {type(self).__name__}")
             self.escPressed.emit()
             return event.ignore()
 
@@ -67,7 +68,10 @@ class Display(QLineEdit):
         if isEmpty(text):
             return event.ignore()
 
-        print("Text: ", text)
+        if isNumOrDot(text):
+            print(f"imput pressed, signal sent by {type(self).__name__}")
+            self.imputPressed.emit(text)
+            return event.ignore()
 
 
 # Principais componentes da janela principal do programa
@@ -159,14 +163,15 @@ class ButtonsGrid(QGridLayout):
         self._equation = value
         self.info.setText(value)
 
-    def apagando(self):
-        print(f"Sinal recebido em 'apagando' {type(self).__name__}")
+    def apagando(self, *args):
+        print(f"Signal {args} received by 'apagando' in {type(self).__name__}")
 
     # Grid de botoes
     def _makeGrid(self):
         self.display.eqPressed.connect(self.apagando)
         self.display.delPressed.connect(self.display.backspace)
         self.display.escPressed.connect(self.apagando)
+        self.display.imputPressed.connect(self.apagando)
 
         # indexes, i e j
         # i row index; j column index

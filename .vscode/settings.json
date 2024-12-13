@@ -24,7 +24,7 @@
     },
     "code-runner.ignoreSelection": true,
     "editor.renderWhitespace": "all",
-    "editor.guides.indentation": false,
+    "editor.guides.indentation": true,
     "explorer.confirmDragAndDrop": false,
     "git.confirmSync": false,
     "python.defaultInterpreterPath": "python",
