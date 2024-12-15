@@ -27,6 +27,7 @@ class Display(QLineEdit):
     delPressed = Signal()
     escPressed = Signal()
     imputPressed = Signal(str)
+    operatorPressed = Signal(str)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -40,6 +41,7 @@ class Display(QLineEdit):
         self.setAlignment(Qt.AlignmentFlag.AlignRight)
         self.setTextMargins(*margins)
 
+    # entrada de dados pelo teclado
     def keyPressEvent(self, event: QKeyEvent) -> None:
         text = event.text().strip()
         key = event.key()
@@ -48,20 +50,30 @@ class Display(QLineEdit):
         isEnter = key in [KEYS.Key_Enter, KEYS.Key_Return, KEYS.Key_Equal]
         isBackspace = key in [KEYS.Key_Backspace, KEYS.Key_Delete]
         isEsc = key in [KEYS.Key_Escape]
+        isOperator = key in [
+            KEYS.Key_Minus,
+            KEYS.Key_Plus,
+            KEYS.Key_Slash,
+            KEYS.Key_Asterisk,
+            KEYS.Key_P,
+        ]
 
         if isEnter:
-            print(f"Enter pressed, signal sent by {type(self).__name__}")
             self.eqPressed.emit()
             return event.ignore()
 
         if isBackspace:
-            print(f"Backspace pressed, signal sent by {type(self).__name__}")
             self.delPressed.emit()
             return event.ignore()
 
         if isEsc:
-            print(f"Esc pressed, signal sent by {type(self).__name__}")
             self.escPressed.emit()
+            return event.ignore()
+
+        if isOperator:
+            if text.lower() == "p":
+                text = "^"
+            self.operatorPressed.emit(text)
             return event.ignore()
 
         # Não passar daqui
@@ -69,7 +81,6 @@ class Display(QLineEdit):
             return event.ignore()
 
         if isNumOrDot(text):
-            print(f"imput pressed, signal sent by {type(self).__name__}")
             self.imputPressed.emit(text)
             return event.ignore()
 
@@ -172,6 +183,7 @@ class ButtonsGrid(QGridLayout):
         self.display.delPressed.connect(self.display.backspace)
         self.display.escPressed.connect(self.apagando)
         self.display.imputPressed.connect(self.apagando)
+        self.display.operatorPressed.connect(self.apagando)
 
         # indexes, i e j
         # i row index; j column index
@@ -272,7 +284,7 @@ class ButtonsGrid(QGridLayout):
         except ZeroDivisionError:
             self._showError("Impossível dividir por zero")
         except OverflowError:
-            print("Resultado é um número muito grande")
+            self._showError("Resultado é um número muito grande")
 
         self.display.clear()
         self.info.setText(f"{self.equation} = {result}")
