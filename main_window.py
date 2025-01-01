@@ -23,6 +23,7 @@ import math
 
 # Visualização da entrada de dados
 class Display(QLineEdit):
+    negativePressed = Signal()
     eqPressed = Signal()
     delPressed = Signal()
     escPressed = Signal()
@@ -50,6 +51,7 @@ class Display(QLineEdit):
         isEnter = key in [KEYS.Key_Enter, KEYS.Key_Return, KEYS.Key_Equal]
         isBackspace = key in [KEYS.Key_Backspace, KEYS.Key_Delete]
         isEsc = key in [KEYS.Key_Escape]
+        isNegative = key in [KEYS.Key_N]
         isOperator = key in [
             KEYS.Key_Minus,
             KEYS.Key_Plus,
@@ -57,6 +59,10 @@ class Display(QLineEdit):
             KEYS.Key_Asterisk,
             KEYS.Key_P,
         ]
+
+        if isNegative:
+            self.negativePressed.emit()
+            return event.ignore()
 
         if isEnter:
             self.eqPressed.emit()
@@ -99,7 +105,7 @@ class MainWindow(QMainWindow):
         self.central_widget.setLayout(self.vLayout)
         self.setCentralWidget(self.central_widget)
 
-    # Última coisa a ser feita
+    # Ultima acao a ser feita
     def adjustFixedSize(self):
         self.adjustSize()
         self.setFixedSize(self.width(), self.height())
@@ -148,7 +154,7 @@ class ButtonsGrid(QGridLayout):
             ["7", "8", "9", "*"],
             ["4", "5", "6", "-"],
             ["1", "2", "3", "+"],
-            ["", "0", ".", "="],
+            ["N", "0", ".", "="],
         ]
 
         self.display = display
@@ -176,11 +182,13 @@ class ButtonsGrid(QGridLayout):
 
     # Grid de botoes
     def _makeGrid(self):
+        # botoes pressionados
         self.display.eqPressed.connect(self._equal)
         self.display.delPressed.connect(self.display.backspace)
         self.display.escPressed.connect(self._clear)
         self.display.imputPressed.connect(self._insertToDisplay)
         self.display.operatorPressed.connect(self._configLeftOp)
+        self.display.negativePressed.connect(self._negativeNumber)
 
         # indexes, i e j
         # i row index; j column index
@@ -208,6 +216,9 @@ class ButtonsGrid(QGridLayout):
         if text == "C":
             self._connectButtonClick(button, self._clear)
 
+        if text == "N":
+            self._connectButtonClick(button, self._negativeNumber)
+
         # backspace
         if text in "◀":
             self._connectButtonClick(button, self.display.backspace)
@@ -215,19 +226,34 @@ class ButtonsGrid(QGridLayout):
         # operadores
         if text in "+-/*^":
             self._connectButtonClick(
-                button, self._makeSlot(self._configLeftOp, button)
+                button, self._makeSlot(self._configLeftOp, text)
             )
 
         # igual
         if text in "=":
             self._connectButtonClick(button, self._equal)
 
+    @Slot()
     def _makeSlot(self, func, *args, **kwargs):
         @Slot(bool)
         def realSLot(_):
             func(*args, **kwargs)
 
         return realSLot
+
+    @Slot()
+    def _negativeNumber(self):
+        displayText = self.display.text()
+
+        if not isValidNumber(displayText):
+            return
+
+        number = float(displayText) * -1
+
+        if number.is_integer():
+            number = int(number)
+
+        self.display.setText(str(number))
 
     @Slot()
     def _insertToDisplay(self, text):
@@ -267,7 +293,7 @@ class ButtonsGrid(QGridLayout):
     def _equal(self):
         displayText = self.display.text()
 
-        if not isValidNumber(displayText):
+        if not isValidNumber(displayText) or self._left is None:
             self._showInfo("Conta incompleta")
             return
 
@@ -307,49 +333,3 @@ class ButtonsGrid(QGridLayout):
         msgBox = self._makeDialog(text)
         msgBox.setIcon(msgBox.Icon.Information)
         msgBox.exec()
-
-    # Tentativa de evitar uso de 'eval()'
-    #     if self._op == "+":
-    #         result = self._sum(self._left, self._right)
-    #     if self._op == "-":
-    #         result = self._less(self._left, self._right)
-    #     if self._op == "*":
-    #         result = self._multiply(self._left, self._right)
-    #     if self._op == "/":
-    #         result = self._divide(self._left, self._right)
-
-    #     if not isValidNumber(result):
-    #         self._clear()
-    #         self.info.setText(f"{self._equationInitialValue}")
-
-    #     self.display.clear()
-    #     self.info.setText(f"{self.equation} = {result}")
-    #     self._left = result
-    #     self._right = None
-
-    # # soma
-    # def _sum(self, leftNum, rightNum) -> str:
-    #     n1, n2 = float(leftNum), float(rightNum)
-    #     result = n1 + n2
-    #     return str(result)
-
-    # # menos
-    # def _less(self, leftNum, rightNum):
-    #     n1, n2 = float(leftNum), float(rightNum)
-    #     result = n1 - n2
-    #     return str(result)
-
-    # def _multiply(self, leftNum, rightNum):
-    #     n1, n2 = float(leftNum), float(rightNum)
-    #     result = n1 * n2
-    #     return str(result)
-
-    # def _divide(self, leftNum, rightNum):
-    #     n1, n2 = float(leftNum), float(rightNum)
-
-    #     try:
-    #         result = n1 / n2
-    #     except ZeroDivisionError:
-    #         return "Cannot divide by 0"
-
-    #     return str(result)
