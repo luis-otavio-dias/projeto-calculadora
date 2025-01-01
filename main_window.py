@@ -184,7 +184,7 @@ class ButtonsGrid(QGridLayout):
     def _makeGrid(self):
         # botoes pressionados
         self.display.eqPressed.connect(self._equal)
-        self.display.delPressed.connect(self.display.backspace)
+        self.display.delPressed.connect(self._backspace)
         self.display.escPressed.connect(self._clear)
         self.display.imputPressed.connect(self._insertToDisplay)
         self.display.operatorPressed.connect(self._configLeftOp)
@@ -263,6 +263,7 @@ class ButtonsGrid(QGridLayout):
             return
 
         self.display.insert(text)
+        self.display.setFocus()
 
     # reseta display e info
     @Slot()
@@ -272,12 +273,14 @@ class ButtonsGrid(QGridLayout):
         self._op = None
         self.equation = self._equationInitialValue
         self.display.clear()
+        self.display.setFocus()
 
     # operador clicado
     @Slot()
     def _configLeftOp(self, text):
         displayText = self.display.text()
         self.display.clear()
+        self.display.setFocus()
 
         if not isValidNumber(displayText) and self._left is None:
             self._showError("Nada foi digitado")
@@ -315,9 +318,15 @@ class ButtonsGrid(QGridLayout):
         self.info.setText(f"{self.equation} = {result}")
         self._left = result
         self._right = None
+        self.display.setFocus()
 
         if result == "error":
             self._left = None
+
+    @Slot()
+    def _backspace(self):
+        self.display.backspace()
+        self.display.setFocus()
 
     def _makeDialog(self, text):
         msgBox = self.window.makeMsgBox()
